@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-version="v0.1.0"
+version="v0.2.0"
 
 # -------------------------------------------------------- #
 # PROXMOX Template Builder
@@ -60,6 +60,8 @@ function getUbuntuCodename() {
 
 # VARIABLES
 VM_ID=9000
+VM_USER="ubuntu"
+VM_PASS="ubuntu"
 VM_STORAGE_POOL="local-lvm"
 NODE_NAME=$(hostname)
 
@@ -111,6 +113,27 @@ else
     wget $IMG_URL
 fi
 
+# check if tools are installed
+HAS_REQS=$(which virt-customize)
+if [ "$?" -eq 0 ];then
+    log ok "Found virt-customize already installed."
+else
+    log info "virt-customize NOT found."
+    log info "virt-customize will be installed."
+    # install kvm tools, e.g. virt-customize
+    apt install libguestfs-tools -y
+fi
+
+# instala o quemu-agent e volta a empacotar a imagem
+log info "Installing qemu-agent"
+
+# virt-customize --add $IMG_NAME --install qemu-guest-agent
+# virt-customize --add $IMG_NAME --install qemu-guest-agent --run-command "systemctl mask cloud-init.service" #cloud-init can sometime hang and this disables it during bootup
+virt-customize --add $IMG_NAME --install qemu-guest-agent --run-command "systemctl enable qemu-guest-agent && systemctl start qemu-guest-agent"
+
+# will show a warning: virt-customize: warning: random seed could not be set for this type of guest
+# but its a bug ?? -- https://bugzilla.redhat.com/show_bug.cgi?id=1677859
+
 log info "Creating virtual machine..."
 
 qm create $VM_ID \
@@ -131,14 +154,20 @@ qm set $VM_ID --boot c --bootdisk scsi0
 
 qm set $VM_ID --serial0 socket --vga serial0
 qm set $VM_ID --agent enabled=1
+#   qm set $1 --agent enabled=1,fstrim_cloned_disks=1
 
 # disco initial tem 2GB, agora somo mais 2
 # qm disk resize $VM_ID scsi0 +2G
+qm set $VM_ID --ipconfig0 "ip=dhcp,ip6=auto"
+# set default cloud-init user
+qm set $VM_ID --ciuser $VM_USER
+# set default cloud-init password
+qm set $VM_ID --cipassword $VM_PASS
 
 qm template $VM_ID
 
 # add notes
-DESC=$(echo -e "# $TPL_NAME \n - created with qemu cli \n - to be deployed with terraform to change vm settings")
+DESC=$(echo -e "# $TPL_NAME \n - created with qemu cli \n - to be deployed with terraform to change vm settings \n - default user/passw = $VM_USER/$VM_PASS")
 
 pvesh set nodes/${NODE_NAME}/qemu/${VM_ID}/config --description "$DESC"
 
