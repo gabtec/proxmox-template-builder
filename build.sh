@@ -61,7 +61,7 @@ function getUbuntuCodename() {
 # VARIABLES
 VM_ID=9000
 VM_STORAGE_POOL="local-lvm"
-NODE_NAME="pve2"
+NODE_NAME=$(hostname)
 
 IMG_DISTRO="ubuntu" # For now is the only distro supported
 IMG_VERSION="22.04"

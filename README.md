@@ -21,6 +21,8 @@ What you can choose:
 - the template VM ID (defaults to 9000)
 
 ## Usage
+SSH into your proxmox server, and run:
+
 ```sh
 usage: ./build.sh [options...] <vm_id>
  -d, --distro-version Distro version/code, e.g. 22.04
