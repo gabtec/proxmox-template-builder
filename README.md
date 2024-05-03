@@ -2,22 +2,30 @@
 
 :rocket: Proxmox template builder tools
 
-This is a very opinionated version, that aims to bring simplification.
-The script will download an oficial Ubuntu cloud image and create a Proxmox Template VM with it.
+This is a two step process, to build proxmox virtual machine templates.
 
-Also it is intended to use this vm template with terraform/openTofu to deploy new VM's,
-and then we can modify settings like cpu or memory.
+## Step 1 - qemu script
+
+Inside [./script](./script/) folder there is a [build.sh](./script/build.sh) script.
+
+It is a very opinionated script, that aims to bring simplification.
+
+The script MUST be executed inside proxmox host.
+
+It will download an oficial Ubuntu cloud image and create a Proxmox Template VM from it. In the process it will add **qemu-guest-agent** package to it.
+
+After you've created the **Base Template Image**, you can:
+
+- clone it and create new VM's from proxmox dashboard
+- deploy new VM's using terraform, and referencing this image as the source template
+- extend it, by installing new packages and generate a new template, using the **Step 2** Packer code
 
 To keep this simple:
 
-- the only supported distro is **Ubuntu Server**
-- the template will have 2 cpus and 1024MiB of memory
+- the only supported distro is **Ubuntu Server**, for now
 - the network interface will be attached to **vmbr0**
-
-:building_construction: WIP (in future versions will have a cli parameter):
-
-- for now storage pool is **local-lvm** (to change it you must edit the script)
-- for now the ubuntu version used is **22.04** (to change it you must edit the script)
+- the template will have 1 cpu and 1024MiB of memory
+- if you like, you can edit the script and change some of this values (using terraform you will also be able to specify new values)
 
 What you can choose:
 
@@ -29,6 +37,29 @@ What you can choose:
 SSH into your proxmox server, and run:
 
 ```sh
+# run
+./build.sh 9000
+
+# show version
+./build.sh -v
+
+# show help
+./build.sh -h
+
+usage: ./build.sh [options...] <vm_id>
+ -h, --help           Show help/usage and quit
+ -v, --version        Show version number and quit
+```
+
+## Future Plans
+
+- allow the selection of ubuntu distro version, e.g. 24.04
+- allow the selection of destination storage pool
+- add a terraform example
+
+```sh
+# example
+
 usage: ./build.sh [options...] <vm_id>
  -d, --distro-version Distro version/code, e.g. 22.04
  -s, --storage-pool   Destiny Storage Pool Name
@@ -36,23 +67,9 @@ usage: ./build.sh [options...] <vm_id>
  -v, --version        Show version number and quit
 ```
 
-## Base Script
+## Step 2 - Packer Build
 
-- This MUST be executed on the proxmox host cli
-- It will download the ubuntu cloud image
-- And then create a base template, for:
-  - create new templates using packer
-  - create new VM's using clone
-  - create new VM's using terraform
-
-### Usage
-
-```sh
-# inside pve host
-cd templates
-# ./build.sh -d <ubuntu-distro-number <vmid>
-./build.sh -d 22.04 7000
-```
+Refer to [instructions](./packer/README.md)
 
 ## License
 
