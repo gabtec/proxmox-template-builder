@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-version="v0.2.0"
+version="v0.3.0"
 
 # -------------------------------------------------------- #
 # PROXMOX Template Builder
@@ -12,6 +12,11 @@ version="v0.2.0"
 #  Parameters:
 #   - { number } - vmID - the id for the template vm
 #                       - defaults to 9000
+#  Example:
+#  - ./build.sh -d 22.04 9000
+#
+#  WIP:
+#  - add more cli arguments
 # -------------------------------------------------------- #
 cat << EOF
  ____
@@ -59,10 +64,13 @@ function getUbuntuCodename() {
 }
 
 # VARIABLES
-VM_ID=9000
+VM_ID=9000 # default, will be override
 VM_USER="ubuntu"
 VM_PASS="ubuntu"
+VM_VSWITCH="vmbr0"
 VM_STORAGE_POOL="local-lvm"
+VM_TAGS="base template"
+VM_DISK_INCREASE="+2G" # base disk has 2.2G
 NODE_NAME=$(hostname)
 
 IMG_DISTRO="ubuntu" # For now is the only distro supported
@@ -101,10 +109,8 @@ fi
 log ok "Lets proceed..."
 
 # MAIN
-set -e
-
 log info "Check for ${IMG_DISTRO} image..."
-# TODO: validate image exists
+
 if [ -f "$IMG_NAME" ];then
     log ok "Image already exists."
     log info "Skipping download."
@@ -124,14 +130,13 @@ else
     apt install libguestfs-tools -y
 fi
 
-# instala o quemu-agent e volta a empacotar a imagem
+# installs quemu-agent and re-pack image again
 log info "Installing qemu-agent"
 
-# virt-customize --add $IMG_NAME --install qemu-guest-agent
-# virt-customize --add $IMG_NAME --install qemu-guest-agent --run-command "systemctl mask cloud-init.service" #cloud-init can sometime hang and this disables it during bootup
+# cloud-init can sometime hang and this disables it during bootup
+# if so, try: virt-customize --add $IMG_NAME --install qemu-guest-agent --run-command "systemctl mask cloud-init.service" 
 virt-customize --add $IMG_NAME --install qemu-guest-agent --run-command "systemctl enable qemu-guest-agent && systemctl start qemu-guest-agent"
-
-# will show a warning: virt-customize: warning: random seed could not be set for this type of guest
+# this will show a warning: virt-customize: warning: random seed could not be set for this type of guest
 # but its a bug ?? -- https://bugzilla.redhat.com/show_bug.cgi?id=1677859
 
 log info "Creating virtual machine..."
@@ -143,7 +148,7 @@ qm create $VM_ID \
 --cores 2 \
 --sockets 1 \
 --memory 1024 \
---net0 virtio,bridge=vmbr0
+--net0 virtio,bridge=$VM_VSWITCH
 
 log info "Importing disk to proxmox vm"
 qm importdisk $VM_ID $IMG_NAME $VM_STORAGE_POOL
@@ -156,8 +161,9 @@ qm set $VM_ID --serial0 socket --vga serial0
 qm set $VM_ID --agent enabled=1
 #   qm set $1 --agent enabled=1,fstrim_cloned_disks=1
 
-# disco initial tem 2GB, agora somo mais 2
-# qm disk resize $VM_ID scsi0 +2G
+# initial disk has 2.2GB, this will increase it by x GB
+qm disk resize $VM_ID scsi0 $VM_DISK_INCREASE
+
 qm set $VM_ID --ipconfig0 "ip=dhcp,ip6=auto"
 # set default cloud-init user
 qm set $VM_ID --ciuser $VM_USER
@@ -167,9 +173,10 @@ qm set $VM_ID --cipassword $VM_PASS
 qm template $VM_ID
 
 # add notes
-DESC=$(echo -e "# $TPL_NAME \n - created with qemu cli \n - to be deployed with terraform to change vm settings \n - default user/passw = $VM_USER/$VM_PASS")
+DESC=$(echo -e "# $TPL_NAME \n - created with qemu cli \n - to be deployed with terraform to change vm settings \n - default user/passw = $VM_USER/$VM_PASS \n - disk size 2.2G $VM_DISK_INCREASE")
 
 pvesh set nodes/${NODE_NAME}/qemu/${VM_ID}/config --description "$DESC"
+pvesh set nodes/${NODE_NAME}/qemu/${VM_ID}/config --tags "$VM_TAGS"
 
 if [ "$?" -eq 0 ];then
     log ok "Template successfully created"
