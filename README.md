@@ -1,4 +1,5 @@
 # proxmox-template-builder
+
 :rocket: Proxmox template builder tools
 
 This is a very opinionated version, that aims to bring simplification.
@@ -8,28 +9,51 @@ Also it is intended to use this vm template with terraform/openTofu to deploy ne
 and then we can modify settings like cpu or memory.
 
 To keep this simple:
+
 - the only supported distro is **Ubuntu Server**
 - the template will have 2 cpus and 1024MiB of memory
 - the network interface will be attached to **vmbr0**
 
 :building_construction: WIP (in future versions will have a cli parameter):
+
 - for now storage pool is **local-lvm** (to change it you must edit the script)
 - for now the ubuntu version used is **22.04** (to change it you must edit the script)
 
 What you can choose:
+
 - the distro version (e.g. 20.04, 22.04, etc)
 - the template VM ID (defaults to 9000)
 
 ## Usage
+
 SSH into your proxmox server, and run:
 
 ```sh
 usage: ./build.sh [options...] <vm_id>
  -d, --distro-version Distro version/code, e.g. 22.04
  -s, --storage-pool   Destiny Storage Pool Name
- -h, --help           Show help/usage and quit 
- -v, --version        Show version number and quit 
+ -h, --help           Show help/usage and quit
+ -v, --version        Show version number and quit
+```
+
+## Base Script
+
+- This MUST be executed on the proxmox host cli
+- It will download the ubuntu cloud image
+- And then create a base template, for:
+  - create new templates using packer
+  - create new VM's using clone
+  - create new VM's using terraform
+
+### Usage
+
+```sh
+# inside pve host
+cd templates
+# ./build.sh -d <ubuntu-distro-number <vmid>
+./build.sh -d 22.04 7000
 ```
 
 ## License
+
 Apache 2.0
