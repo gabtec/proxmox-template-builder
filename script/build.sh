@@ -70,7 +70,7 @@ IMG_VERSION="22.04"
 
 IMG_CODENAME=$(getUbuntuCodename $IMG_VERSION)
 IMG_NAME="${IMG_CODENAME}-server-cloudimg-amd64.img"
-IMG_URL="https://cloud-images.ubuntu.com/${IMG_CODENAME}/current/${IMG_NAME}"
+ls="https://cloud-images.ubuntu.com/${IMG_CODENAME}/current/${IMG_NAME}"
 IMG_TAG=$(date +"%Y%m%d%H%M%S")
 TPL_NAME="$IMG_DISTRO-$IMG_VERSION-$IMG_TAG"
 TPL_DISK_NAME="${VM_STORAGE_POOL}:vm-${VM_ID}-disk-0"
@@ -107,6 +107,7 @@ function set_cpu(){
 
 function set_distro() {
     IMG_VERSION=$1
+    IMG_CODENAME=$(getUbuntuCodename $1)
 }
 
 function set_id(){
@@ -195,8 +196,9 @@ echo "MEMORY ---------> $VM_MEM"
 echo "DISTRO ---------> $IMG_DISTRO $IMG_VERSION"
 echo "STORAGE POOL ---> $VM_STORAGE_POOL"
 echo "DISK SIZE ------> 2.2G $VM_DISK_INCREASE"
+echo "IMG_CODENAME ---> $IMG_CODENAME"
 echo ""
-
+exit 0
 read -p "[  INFO ]: Do you wish to continue? (y/N)" ANSWER
 if [ "$ANSWER" != "y" ];then 
     log warn "You choose to cancel. Exiting..."
@@ -212,7 +214,7 @@ if [ -f "$IMG_NAME" ];then
     log info "Skipping download."
 else
     log info "Downloading image..."
-    wget $IMG_URL
+    wget $ls
 fi
 
 # check if tools are installed
