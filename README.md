@@ -37,8 +37,11 @@ What you can choose:
 SSH into your proxmox server, and run:
 
 ```sh
-# run
-./build.sh 9000
+# run, using all defaults
+./build.sh
+
+# run, setting all options
+ ./build.sh -b vmbr1 -c 4 -m 2048 -i 7777 -d 18.04 -s some-lvm -S +6G
 
 # show version
 ./build.sh -v
@@ -46,25 +49,17 @@ SSH into your proxmox server, and run:
 # show help
 ./build.sh -h
 
-usage: ./build.sh [options...] <vm_id>
- -h, --help           Show help/usage and quit
- -v, --version        Show version number and quit
-```
+usage: ./build.sh [options...]
+  -b,   VSWITCH name (default: vmbr0)
+  -c,   CPU count (default: 1)
+  -d,   Distro version/code (default: 22.04)
+  -i,   VM ID for the final template (default: 9000)
+  -m,   MEM allocation in MiB (default: 1024)
+  -s,   Storage Pool Name (default: local-lvm)
+  -S,   Storage Increase (default: +2G)
 
-## Future Plans
-
-- allow the selection of ubuntu distro version, e.g. 24.04
-- allow the selection of destination storage pool
-- add a terraform example
-
-```sh
-# example
-
-usage: ./build.sh [options...] <vm_id>
- -d, --distro-version Distro version/code, e.g. 22.04
- -s, --storage-pool   Destiny Storage Pool Name
- -h, --help           Show help/usage and quit
- -v, --version        Show version number and quit
+  -h,   Show help/usage and quit
+  -v,   Show version number and quit
 ```
 
 ## Step 2 - Packer Build
