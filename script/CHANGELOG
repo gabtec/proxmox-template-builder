@@ -1,0 +1,58 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [0.4.0] - 2024-05-04
+
+### Added
+
+- cli option "-b" to select network bridge, e.g. ./build.sh -b vmbr2
+- cli option "-c" to select cpu number, e.g. ./build.sh -c 4
+- cli option "-d" to select distro version, e.g. ./build.sh -d 24.04
+- cli option "-i" to select vm id, e.g. ./build.sh -i 7000
+- cli option "-m" to select vm memory in MiB, e.g. ./build.sh -m 2048
+- cli option "-s" to select vm storage pool, e.g. ./build.sh -s local-lvm
+- cli option "-S" to select vm disk size (will sum to 2.2G base disk), e.g. ./build.sh -S +6G (plus sign required)
+
+### Changed
+
+- cli options parsed with getopts
+
+## [0.3.0] - 2024-05-03
+
+### Added
+
+- Add new variables
+- Updated documentation
+
+### Fixed
+
+- Minor fixes, removed set cmd
+
+## [0.2.0] - 2024-04-00
+
+### Added
+
+- More configs
+
+### Fixed
+
+- Network issue, of cloud-init not get dhcp IP
+
+## [0.1.0] - 2024-04-00
+
+### Added
+
+- First release
+
+[unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v1.1.1...HEAD
+[0.3.0]: https://github.com/gabtec/proxmox-template-builder/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/gabtec/proxmox-template-builder/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/gabtec/proxmox-template-builder/releases/tag/v0.1.0
+
+What is a changelog?

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-version="v0.3.0"
+version="v0.4.0"
 
 # -------------------------------------------------------- #
 # PROXMOX Template Builder
@@ -10,8 +10,12 @@ version="v0.3.0"
 #    date: 2024-04-06
 #
 #  Parameters:
-#   - { number } - vmID - the id for the template vm
-#                       - defaults to 9000
+#   -c <cpu_count>  - define the number of cpus for the template vm (defaults to 1)
+#   -b <bridge>     - define the network bridge for the template vm (defaults to vmbr0)
+#   -d <distro>     - define the base ubuntu distro version for the template vm (defaults to 22.04)
+#   -i <vm_id>      - define a custom id for the template vm (defaults to 9000)
+#   -m <mem_in_mib> - define the memory value for the template vm (defaults to 1024)
+#   -s <storage>    - define the destination storage pool for the template vm (defaults to local-lvm)
 #  Example:
 #  - ./build.sh -d 22.04 9000
 #
@@ -32,22 +36,7 @@ EOF
 # IMPORTS
 source /dev/stdin  <<< "$(curl -s https://raw.githubusercontent.com/gabtec/shell-h/main/lib/helpers.sh)"
 
-# FUNCTIONS
-function show_usage() {
-    echo "usage: $0 [options...] <vm_id>"
-    echo " -d, --distro-version Distro version/code (default: 22.04)" 
-    echo " -s, --storage-pool   Destiny Storage Pool Name (default: local-lvm)" 
-    echo " -h, --help           Show help/usage and quit" 
-    echo " -v, --version        Show version number and quit" 
-
-    exit 0
-}
-
-function show_version() {
-    echo "Version: $0 $version"
-    exit 0
-}
-
+# UTILS
 function getUbuntuCodename() {
     VERSION=$1
 
@@ -68,6 +57,8 @@ VM_ID=9000 # default, will be override
 VM_USER="ubuntu"
 VM_PASS="ubuntu"
 VM_VSWITCH="vmbr0"
+VM_CPU=1
+VM_MEM=1024
 VM_STORAGE_POOL="local-lvm"
 VM_TAGS="base template"
 VM_DISK_INCREASE="+2G" # base disk has 2.2G
@@ -84,21 +75,126 @@ TPL_NAME="$IMG_DISTRO-$IMG_VERSION-$IMG_TAG"
 TPL_DISK_NAME="${VM_STORAGE_POOL}:vm-${VM_ID}-disk-0"
 TPL_CLOUDINIT_DISK_NAME="$VM_STORAGE_POOL:cloudinit"
 
+# FUNCTIONS
+function show_usage() {
+    echo "usage: $0 [options...]"
+    echo " -b VSWITCH name (default: vmbr0)" 
+    echo " -c CPU count (default: 1)" 
+    echo " -d Distro version/code (default: 22.04)" 
+    echo " -i VM ID for the final template (default: 9000)" 
+    echo " -m MEM allocation in MiB (default: 1024)" 
+    echo " -s Storage Pool Name (default: local-lvm)"
+    echo " -S Storage Increase (default: +2G)"
+    echo " -h Show help/usage and quit" 
+    echo " -v Show version number and quit" 
+
+    exit 0
+}
+
+function show_version() {
+    echo "Version: $0 $version"
+    exit 0
+}
+
+function set_bridge(){
+    VM_VSWITCH=$1
+}
+
+function set_cpu(){
+    VM_CPU=$1
+}
+
+function set_distro() {
+    IMG_VERSION=$1
+}
+
+function set_id(){
+    VM_ID=$1
+}
+
+function set_mem(){
+    VM_MEM=$1
+}
+
+function set_storage(){
+    VM_STORAGE_POOL=$1
+}
+
+function set_storage_increase(){
+    VM_DISK_INCREASE=$1
+}
+
+
 # PARSE ARGS
-if [ "$1" == "-h" ] || [ "$1" == "--help" ];then 
-    show_usage
-fi
-if [ "$1" == "-v" ] || [ "$1" == "--version" ];then 
-    show_version
-fi
-if [ "$#" -eq 0 ];then 
-    log info "Using default VM_ID=$VM_ID"
-else
-    # last value in args array
-    VM_ID="${@:$#}" 
-    TPL_DISK_NAME="${VM_STORAGE_POOL}:vm-${VM_ID}-disk-0"
-    log info "Using VM_ID=$VM_ID"
-fi
+OPTSTRING="b:c:d:i:m:s:S:hv"
+while getopts ${OPTSTRING} opt; do
+  case ${opt} in
+    b)
+    #   echo "Option -c [CPU ] was triggered, Argument: ${OPTARG}"
+      set_bridge $OPTARG
+      ;;
+    c)
+    #   echo "Option -c [CPU ] was triggered, Argument: ${OPTARG}"
+      set_cpu $OPTARG
+      ;;
+    d)
+    #   echo "Option -c [CPU ] was triggered, Argument: ${OPTARG}"
+      set_distro $OPTARG
+      ;;
+    i)
+    #   echo "Option -i [id] was triggered, Argument: ${OPTARG}"
+      set_id $OPTARG
+      ;;
+    m)
+    #   echo "Option -m [MEM] was triggered, Argument: ${OPTARG}"
+      set_mem $OPTARG
+      ;;
+    s)
+    #   echo "Option -s [STORAGE] was triggered, Argument: ${OPTARG}"
+      set_storage $OPTARG
+      ;;
+    S)
+    #   echo "Option -s [STORAGE] was triggered, Argument: ${OPTARG}"
+      set_storage_increase $OPTARG
+      ;;
+    v)
+      show_version
+      ;;
+    h)
+      show_usage
+      ;;
+    ?)
+        show_usage
+    #   echo "Invalid option: -${OPTARG}."
+    #   exit 1
+      ;;
+  esac
+done
+# if [ "$1" == "-h" ] || [ "$1" == "--help" ];then 
+#     show_usage
+# fi
+# if [ "$1" == "-v" ] || [ "$1" == "--version" ];then 
+#     show_version
+# fi
+# if [ "$#" -eq 0 ];then 
+#     log info "Using default VM_ID=$VM_ID"
+# else
+#     # last value in args array
+#     VM_ID="${@:$#}" 
+#     TPL_DISK_NAME="${VM_STORAGE_POOL}:vm-${VM_ID}-disk-0"
+#     log info "Using VM_ID=$VM_ID"
+# fi
+
+echo SELECTED OPTIONS:
+echo "-----------------"
+echo "VMID -----------> $VM_ID"
+echo "NETWORK BRIDGE -> $VM_VSWITCH"
+echo "NUM CPUs -------> $VM_CPU"
+echo "MEMORY ---------> $VM_MEM"
+echo "DISTRO ---------> $IMG_DISTRO $IMG_VERSION"
+echo "STORAGE POOL ---> $VM_STORAGE_POOL"
+echo "DISK SIZE ------> 2.2G $VM_DISK_INCREASE"
+echo ""
 
 read -p "[  INFO ]: Do you wish to continue? (y/N)" ANSWER
 if [ "$ANSWER" != "y" ];then 
@@ -107,7 +203,6 @@ if [ "$ANSWER" != "y" ];then
 fi
 
 log ok "Lets proceed..."
-
 # MAIN
 log info "Check for ${IMG_DISTRO} image..."
 
@@ -145,9 +240,9 @@ qm create $VM_ID \
 --name $TPL_NAME \
 --ostype l26 \
 --cpu cputype=host \
---cores 2 \
+--cores $VM_CPU \
 --sockets 1 \
---memory 1024 \
+--memory $VM_MEM \
 --net0 virtio,bridge=$VM_VSWITCH
 
 log info "Importing disk to proxmox vm"
