@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-version="v0.4.1"
+version="v0.4.2"
 
 # -------------------------------------------------------- #
 # PROXMOX Template Builder
@@ -132,31 +132,24 @@ OPTSTRING="b:c:d:i:m:s:S:hv"
 while getopts ${OPTSTRING} opt; do
   case ${opt} in
     b)
-    #   echo "Option -c [CPU ] was triggered, Argument: ${OPTARG}"
       set_bridge $OPTARG
       ;;
     c)
-    #   echo "Option -c [CPU ] was triggered, Argument: ${OPTARG}"
       set_cpu $OPTARG
       ;;
     d)
-    #   echo "Option -c [CPU ] was triggered, Argument: ${OPTARG}"
       set_distro $OPTARG
       ;;
     i)
-    #   echo "Option -i [id] was triggered, Argument: ${OPTARG}"
       set_id $OPTARG
       ;;
     m)
-    #   echo "Option -m [MEM] was triggered, Argument: ${OPTARG}"
       set_mem $OPTARG
       ;;
     s)
-    #   echo "Option -s [STORAGE] was triggered, Argument: ${OPTARG}"
       set_storage $OPTARG
       ;;
     S)
-    #   echo "Option -s [STORAGE] was triggered, Argument: ${OPTARG}"
       set_storage_increase $OPTARG
       ;;
     v)
@@ -166,26 +159,10 @@ while getopts ${OPTSTRING} opt; do
       show_usage
       ;;
     ?)
-        show_usage
-    #   echo "Invalid option: -${OPTARG}."
-    #   exit 1
+      show_usage
       ;;
   esac
 done
-# if [ "$1" == "-h" ] || [ "$1" == "--help" ];then 
-#     show_usage
-# fi
-# if [ "$1" == "-v" ] || [ "$1" == "--version" ];then 
-#     show_version
-# fi
-# if [ "$#" -eq 0 ];then 
-#     log info "Using default VM_ID=$VM_ID"
-# else
-#     # last value in args array
-#     VM_ID="${@:$#}" 
-#     TPL_DISK_NAME="${VM_STORAGE_POOL}:vm-${VM_ID}-disk-0"
-#     log info "Using VM_ID=$VM_ID"
-# fi
 
 echo SELECTED OPTIONS:
 echo "-----------------"
@@ -198,15 +175,15 @@ echo "STORAGE POOL ---> $VM_STORAGE_POOL"
 echo "DISK SIZE ------> 2.2G $VM_DISK_INCREASE"
 echo "IMG_CODENAME ---> $IMG_CODENAME"
 echo ""
-exit 0
+
 read -p "[  INFO ]: Do you wish to continue? (y/N)" ANSWER
 if [ "$ANSWER" != "y" ];then 
     log warn "You choose to cancel. Exiting..."
     exit 2
 fi
 
-log ok "Lets proceed..."
 # MAIN
+log ok "Lets proceed..."
 log info "Check for ${IMG_DISTRO} image..."
 
 if [ -f "$IMG_NAME" ];then
