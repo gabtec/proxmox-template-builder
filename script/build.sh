@@ -10,12 +10,13 @@ version="v0.4.0"
 #    date: 2024-04-06
 #
 #  Parameters:
-#   -c <cpu_count>  - define the number of cpus for the template vm (defaults to 1)
 #   -b <bridge>     - define the network bridge for the template vm (defaults to vmbr0)
+#   -c <cpu_count>  - define the number of cpus for the template vm (defaults to 1)
 #   -d <distro>     - define the base ubuntu distro version for the template vm (defaults to 22.04)
 #   -i <vm_id>      - define a custom id for the template vm (defaults to 9000)
 #   -m <mem_in_mib> - define the memory value for the template vm (defaults to 1024)
 #   -s <storage>    - define the destination storage pool for the template vm (defaults to local-lvm)
+#   -S <disk_inc>   - define the disk increment on top of base size (defaults to 2.2G + 2G)
 #  Example:
 #  - ./build.sh -d 22.04 9000
 #
@@ -67,7 +68,7 @@ NODE_NAME=$(hostname)
 IMG_DISTRO="ubuntu" # For now is the only distro supported
 IMG_VERSION="22.04"
 
-IMG_CODENAME=$(getUbuntuCodename "22.04")
+IMG_CODENAME=$(getUbuntuCodename $IMG_VERSION)
 IMG_NAME="${IMG_CODENAME}-server-cloudimg-amd64.img"
 IMG_URL="https://cloud-images.ubuntu.com/${IMG_CODENAME}/current/${IMG_NAME}"
 IMG_TAG=$(date +"%Y%m%d%H%M%S")
