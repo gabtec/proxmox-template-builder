@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-version="v0.4.2"
+version="v0.4.3"
 
 # -------------------------------------------------------- #
 # PROXMOX Template Builder
@@ -67,14 +67,6 @@ NODE_NAME=$(hostname)
 
 IMG_DISTRO="ubuntu" # For now is the only distro supported
 IMG_VERSION="22.04"
-
-IMG_CODENAME=$(getUbuntuCodename $IMG_VERSION)
-IMG_NAME="${IMG_CODENAME}-server-cloudimg-amd64.img"
-ls="https://cloud-images.ubuntu.com/${IMG_CODENAME}/current/${IMG_NAME}"
-IMG_TAG=$(date +"%Y%m%d%H%M%S")
-TPL_NAME="$IMG_DISTRO-$IMG_VERSION-$IMG_TAG"
-TPL_DISK_NAME="${VM_STORAGE_POOL}:vm-${VM_ID}-disk-0"
-TPL_CLOUDINIT_DISK_NAME="$VM_STORAGE_POOL:cloudinit"
 
 # FUNCTIONS
 function show_usage() {
@@ -164,6 +156,15 @@ while getopts ${OPTSTRING} opt; do
   esac
 done
 
+IMG_CODENAME=$(getUbuntuCodename $IMG_VERSION)
+IMG_NAME="${IMG_CODENAME}-server-cloudimg-amd64.img"
+IMG_URL="https://cloud-images.ubuntu.com/${IMG_CODENAME}/current/${IMG_NAME}"
+IMG_TAG=$(date +"%Y%m%d%H%M%S")
+TPL_NAME="$IMG_DISTRO-$IMG_VERSION-$IMG_TAG"
+TPL_DISK_NAME="${VM_STORAGE_POOL}:vm-${VM_ID}-disk-0"
+TPL_CLOUDINIT_DISK_NAME="$VM_STORAGE_POOL:cloudinit"
+
+
 echo SELECTED OPTIONS:
 echo "-----------------"
 echo "VMID -----------> $VM_ID"
@@ -191,7 +192,7 @@ if [ -f "$IMG_NAME" ];then
     log info "Skipping download."
 else
     log info "Downloading image..."
-    wget $ls
+    wget $IMG_URL
 fi
 
 # check if tools are installed
@@ -215,6 +216,8 @@ virt-customize --add $IMG_NAME --install qemu-guest-agent --run-command "systemc
 # but its a bug ?? -- https://bugzilla.redhat.com/show_bug.cgi?id=1677859
 
 log info "Creating virtual machine..."
+
+set -e
 
 qm create $VM_ID \
 --name $TPL_NAME \
