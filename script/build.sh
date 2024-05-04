@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-version="v0.4.0"
+version="v0.4.1"
 
 # -------------------------------------------------------- #
 # PROXMOX Template Builder
