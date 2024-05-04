@@ -38,7 +38,7 @@ SSH into your proxmox server, and run:
 
 ```sh
 # download
-wget https://raw.githubusercontent.com/gabtec/proxmox-template-builder/v0.4.3/script/build.sh
+wget https://raw.githubusercontent.com/gabtec/proxmox-template-builder/main/script/build.sh
 chmod +x build.sh
 
 # run, using all defaults
