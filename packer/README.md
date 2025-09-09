@@ -43,6 +43,7 @@ packer validate .
 
 # build to start building the template
 packer build .
+packer validate -var-file=values.pkrvars.hcl .
 
 # optionaly, run build with some kind of debug
 packer build -debug .

@@ -82,7 +82,6 @@ build {
   name    = "build step" # SOS
   sources = ["source.proxmox-clone.ubuntu"]
 
-
   # read: https://ubuntu.com/tutorials/how-to-build-your-own-ami-from-ubuntu-pro-using-packer#5-defining-the-provisioner-component
   provisioner "shell" {
 
